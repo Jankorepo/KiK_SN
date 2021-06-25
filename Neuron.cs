@@ -7,12 +7,14 @@ namespace KiK_SN
     class Neuron
     {
         public double output;
-        List<double> matrix=new List<double>();
+        public List<double> matrix=new List<double>();
+        public double correction;
+        public double bias = 1;
         public Neuron() { }
-        public Neuron(bool neuron_is_not_on_first_layer)
+        public Neuron(int number_of_inputs)
         {
             Random rnd = new Random();
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < number_of_inputs+1; i++)
             {
                 matrix.Add(rnd.NextDouble()*2-1);
             }

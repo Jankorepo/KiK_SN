@@ -6,7 +6,7 @@ namespace KiK_SN
 {
     class Web
     {
-        public List<List<Neuron>> layers;
+        public List<List<Neuron>> layers=new List<List<Neuron>>();
         public List<int> web_structure;
         public Web Copy(Web my_old_web)
         {
@@ -21,7 +21,7 @@ namespace KiK_SN
             my_new_web.web_structure = my_old_web.web_structure;
             return my_new_web;
         }
-        public Web Fill(Web my_web)
+        public void Fill(Web my_web)
         {
             for (int i = 0; i < my_web.web_structure.Count; i++)
             {
@@ -31,10 +31,29 @@ namespace KiK_SN
                     if (i == 0)
                         my_web.layers[i].Add(new Neuron());
                     else
-                        my_web.layers[i].Add(new Neuron(true)); // jeżeli neuron nie leży na pierwszej warstwie to użyj true
+                        my_web.layers[i].Add(new Neuron(my_web.web_structure[0]));
                 }
             }
-            return my_web;
+        }
+        public void FillSetValues(Web my_web)
+        {
+            Neuron n01 = new Neuron() { output = 1 };
+            Neuron n02 = new Neuron() { output = 0 };
+            Neuron n11 = new Neuron() { matrix = new List<double>() { 0.3, 0.1, 0.2 } };
+            Neuron n12 = new Neuron() { matrix = new List<double>() { 0.6, 0.4, 0.5 } };
+            Neuron n21 = new Neuron() { matrix = new List<double>() { 0.9, 0.7, -0.8 } };
+            my_web.layers.Add(new List<Neuron>() { n01, n02 });
+            my_web.layers.Add(new List<Neuron>() { n11, n12 });
+            my_web.layers.Add(new List<Neuron>() { n21});
+        }
+        public void Clean()
+        {
+            foreach (var single_layer in layers)
+                foreach (var single_neuron in single_layer)
+                {
+                    single_neuron.correction = new double();
+                    single_neuron.output = new double();
+                }
         }
     }
 }

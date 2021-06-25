@@ -25,8 +25,12 @@ namespace KiK_SN
         public MainWindow()
         {
             InitializeComponent();
-            neural_web.web_structure = new List<int>() { 2, 3, 1 };
+            neural_web.web_structure = new List<int>() { 2,2,1 };
             neural_web.Fill(neural_web);
+            //neural_web.FillSetValues(neural_web); // sprawdzenie czy sieć działa na przygotowanym wcześniej przykładzie
+            CalculateWebData.Output(neural_web, new List<int>() { 1,0 });
+            CalculateWebData.BackwardPropagation(neural_web, new List<int>() { 1 }, 0.1);
+            neural_web.Clean();
         }
 
         private void Button01_Click(object sender, RoutedEventArgs e)
