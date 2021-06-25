@@ -18,11 +18,15 @@ namespace KiK_SN
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
+    
     public partial class MainWindow : Window
     {
+        Web neural_web = new Web();
         public MainWindow()
         {
             InitializeComponent();
+            neural_web.web_structure = new List<int>() { 2, 3, 1 };
+            neural_web.Fill(neural_web);
         }
 
         private void Button01_Click(object sender, RoutedEventArgs e)
