@@ -10,7 +10,6 @@ namespace KiK_SN
         {
             for (int i = 0; i < my_web.layers[0].Count; i++)
                 my_web.layers[0][i].output = inputs[i];
-
             GetSingleNeuronOutputs(my_web);  
         }
 

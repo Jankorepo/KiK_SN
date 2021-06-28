@@ -31,7 +31,7 @@ namespace KiK_SN
                     if (i == 0)
                         my_web.layers[i].Add(new Neuron());
                     else
-                        my_web.layers[i].Add(new Neuron(my_web.web_structure[0]));
+                        my_web.layers[i].Add(new Neuron(my_web.web_structure[i-1]));
                 }
             }
         }
