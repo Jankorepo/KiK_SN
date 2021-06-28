@@ -27,12 +27,13 @@ namespace KiK_SN
         public MainWindow()
         {
             InitializeComponent();
-            neural_web.web_structure = new List<int>() { 9,18,18,9 };
+            neural_web.web_structure = new List<int>() { 3,3,2,2 };
             neural_web.Fill(neural_web);
         }
 
         private void Button01_Click(object sender, RoutedEventArgs e)
         {
+            /*
             List<List<List<double>>> lista = JsonConvert.DeserializeObject<List<List<List<double>>>>(File.ReadAllText(@"train_data/sumatorek.json"));
             //neural_web.FillSetValues(neural_web); // sprawdzenie czy sieć działa na przygotowanym wcześniej przykładzie
             for (int i = 0; i < 100000; i++)
@@ -42,6 +43,8 @@ namespace KiK_SN
                 CalculateWebData.BackwardPropagation(neural_web, random_data_to_learn[1], 0.1);
                 neural_web.Clean();
             }
+            */
+
         }
     }
 }
