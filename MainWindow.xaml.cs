@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace KiK_SN
 {
@@ -27,15 +29,19 @@ namespace KiK_SN
             InitializeComponent();
             neural_web.web_structure = new List<int>() { 2,2,1 };
             neural_web.Fill(neural_web);
-            //neural_web.FillSetValues(neural_web); // sprawdzenie czy sieć działa na przygotowanym wcześniej przykładzie
-            CalculateWebData.Output(neural_web, new List<int>() { 1,0 });
-            CalculateWebData.BackwardPropagation(neural_web, new List<int>() { 1 }, 0.1);
-            neural_web.Clean();
         }
 
         private void Button01_Click(object sender, RoutedEventArgs e)
         {
-
+            List<List<List<double>>> lista = JsonConvert.DeserializeObject<List<List<List<double>>>>(File.ReadAllText(@"train_data/xor.json"));
+            //neural_web.FillSetValues(neural_web); // sprawdzenie czy sieć działa na przygotowanym wcześniej przykładzie
+            for (int i = 0; i < 10000; i++)
+            {
+                List<List<double>> random_data_to_learn = lista[new Random().Next(lista.Count)];
+                CalculateWebData.Output(neural_web, random_data_to_learn[0]);
+                CalculateWebData.BackwardPropagation(neural_web, random_data_to_learn[1], 0.1);
+                neural_web.Clean();
+            }
         }
     }
 }

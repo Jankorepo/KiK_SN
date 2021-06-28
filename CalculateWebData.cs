@@ -6,7 +6,7 @@ namespace KiK_SN
 {
     static class CalculateWebData
     {
-        static public void Output(Web my_web, List<int> inputs)
+        static public void Output(Web my_web, List<double> inputs)
         {
             for (int i = 0; i < my_web.layers[0].Count; i++)
                 my_web.layers[0][i].output = inputs[i];
@@ -32,7 +32,7 @@ namespace KiK_SN
             return result;
         }
 
-        static public void BackwardPropagation(Web my_web, List<int> perfect_outputs, double learning_rate)
+        static public void BackwardPropagation(Web my_web, List<double> perfect_outputs, double learning_rate)
         {
             for (int i = my_web.layers.Count-1; i > 0 ; i--)
             {
