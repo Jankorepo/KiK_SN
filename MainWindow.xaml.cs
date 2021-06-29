@@ -24,61 +24,174 @@ namespace KiK_SN
     public partial class MainWindow : Window
     {
         Web neural_web = new Web();
-        TicTacToe board = new TicTacToe();
+        Web neural_web_enemy = new Web();
+        TicTacToe board_to_play = new TicTacToe();
+        int web_character = 2;
         public MainWindow()
         {
             InitializeComponent();
-            neural_web.web_structure = new List<int>() { 9,5,9 };
+            neural_web.web_structure = new List<int>() { 27,9,9 };
             neural_web.Fill(neural_web);
         }
 
         private void Button01_Click(object sender, RoutedEventArgs e)
         {
-            int epochs = 1000000;
-            int games_to_leave = 0;
-            List<double> licz = new List<double>() { 0,0,0 };
+            int epochs = 100000;
+            List<Double> tmp = new List<double>() { 0, 0, 0 };
             for (int i = 0; i < epochs; i++)
             {
-                List<List<List<Double>>> saved_moves = board.PlayASingleGame(neural_web);
-                double winner = saved_moves[2][0][0];
-                PrepareSavedMovesToLearn(saved_moves, winner);
-                for (int j= 0; j < saved_moves[0].Count; j++)
+                Tuple<List<List<Double>>, List<List<int>>, string> saved_moves=board_to_play.PlayASingleGame(neural_web, false);
+                string winner = saved_moves.Item3;
+                for (int j = 0; j < saved_moves.Item1.Count; j++)
                 {
-                    CalculateWebData.Output(neural_web, saved_moves[1][j]);
-                    CalculateWebData.BackwardPropagation(neural_web, saved_moves[0][j], 0.1);
+                    CalculateWebData.Output(neural_web, saved_moves.Item2[j]);
+                    CalculateWebData.BackwardPropagation(neural_web, saved_moves.Item1[j], 0.01);
                     neural_web.Clean();
                 }
-                if (winner == 2)
-                    licz[2]++;
-                else if (winner == 1)
-                    licz[1]++;
-                else if (winner == 0)
-                    licz[0]++;
-                else if (winner == 5)
-                    games_to_leave++;
+                if(i>90000)
+                {
+                    if (winner == "Web won")
+                        tmp[0]++;
+                    else if (winner == "Random player won")
+                        tmp[1]++;
+                    else if (winner == "Draw")
+                        tmp[2]++;
+                }
             }
-            MessageBox.Show("Sieć wygrała "+ Math.Round((licz[2] / (epochs - games_to_leave)), 4)*100 + "% gier"+"\n"+
-            "Losowość wygrała " + Math.Round((licz[1] /( epochs - games_to_leave)), 4) * 100 + "% gier" + "\n" +
-            "Równość wygrała " + Math.Round((licz[0] / (epochs - games_to_leave)), 4) * 100 + "% gier" + "\n");
+            MessageBox.Show("Sieć wygrała " + Math.Round((tmp[0] / 10000), 7) * 100 + "% gier \n" +
+                "Losowość wygrała " + Math.Round((tmp[1] / 10000), 7) * 100 + "% gier \n" +
+                "Remis wystąpił w " + Math.Round((tmp[2] / 10000), 7) * 100 + "% gier \n");
+
+
+
+            CalculateWebData.Output(neural_web, board_to_play.board);
+            double best_value = board_to_play.ChooseBestValue(neural_web.layers[neural_web.layers.Count - 1]);
+            int field = board_to_play.FindBestNeuronIndex(best_value, neural_web.layers[neural_web.layers.Count - 1]);
+            board_to_play.board[field] = 1 ;
+            SetButtonContent(field, web_character);
+        }
+        /*private void PlayVsHuman(int entered_character)
+        {
+            SetButtonContent(entered_character, human_character);
+            board_to_play.board[entered_character] = human_character;
+            if (board_to_play.GameResult(2) == 1)
+            {
+                MessageBox.Show("Gracz wygrywa!");
+                return;
+            }
+            else if (board_to_play.GameResult(2) == -1)
+            {
+                MessageBox.Show("Remis!");
+                return;
+            }
+                
+            CalculateWebData.Output(neural_web, board_to_play.board);
+            double best_value = board_to_play.ChooseBestValue(neural_web.layers[neural_web.layers.Count - 1]);
+            int field = board_to_play.FindListIndex(best_value, neural_web.layers[neural_web.layers.Count - 1]);
+            board_to_play.Move(2, field);
+            SetButtonContent(field, web_character);
+            board_to_play.GameResult(2);
+            if (board_to_play.GameResult(2) == 2)
+            {
+                MessageBox.Show("Sieć wygrywa!");
+                return;
+            }
+            else if (board_to_play.GameResult(2) == -1)
+            {
+                MessageBox.Show("Remis!");
+                return;
+            }
+        }*/
+
+        
+
+        private void SetButtonContent(int field, int character)
+        {
+            string output_character = "";
+            if (character==1) output_character = "0";
+            else if (character == 2) output_character = "X";
+            if (field == 0) Field11.Content = output_character;
+            else if (field == 1) Field12.Content = output_character;
+            else if (field == 2) Field13.Content = output_character;
+            else if (field == 3) Field21.Content = output_character;
+            else if (field == 4) Field22.Content = output_character;
+            else if (field == 5) Field23.Content = output_character;
+            else if (field == 6) Field31.Content = output_character;
+            else if (field == 7) Field32.Content = output_character;
+            else if (field == 8) Field33.Content = output_character;
         }
 
-        private void PrepareSavedMovesToLearn(List<List<List<double>>> saved_moves, double winner)
+        private void Field11_Click(object sender, RoutedEventArgs e)
         {
-            List<List<Double>> web_moves = saved_moves[0];
-            if(winner==2)
-                ChooseMoveToChange(web_moves, 1);
-            else if(winner == 1 || winner ==5)
-                ChooseMoveToChange(web_moves, 0);
-            else if (winner == 0)
-                ChooseMoveToChange(web_moves, 0.95);
+            //if(game_started)
+                //PlayVsHuman(0);
         }
 
-        private void ChooseMoveToChange(List<List<double>> web_moves, double value)
+        private void Field12_Click(object sender, RoutedEventArgs e)
         {
-            foreach (var single_move in web_moves)
-                for (int i = 0; i < single_move.Count; i++)
-                    if (single_move.Max() == single_move[i])
-                        single_move[i] = value;
+            //if (game_started)
+                //PlayVsHuman(1);
+        }
+
+        private void Field13_Click(object sender, RoutedEventArgs e)
+        {
+            //if (game_started)
+                //PlayVsHuman(2);
+        }
+
+        private void Field21_Click(object sender, RoutedEventArgs e)
+        {
+            //if (game_started)
+                //PlayVsHuman(3);
+        }
+
+        private void Field22_Click(object sender, RoutedEventArgs e)
+        {
+            //if (game_started)
+                //PlayVsHuman(4);
+        }
+
+        private void Field23_Click(object sender, RoutedEventArgs e)
+        {
+            //if (game_started)
+                //PlayVsHuman(5);
+        }
+
+        private void Field31_Click(object sender, RoutedEventArgs e)
+        {
+            //if (game_started)
+                //PlayVsHuman(6);
+        }
+
+        private void Field32_Click(object sender, RoutedEventArgs e)
+        {
+            //if (game_started)
+                //PlayVsHuman(7);
+        }
+
+        private void Field33_Click(object sender, RoutedEventArgs e)
+        {
+            //if (game_started)
+                //PlayVsHuman(8);
+        }
+
+        private void Clear_button_Click(object sender, RoutedEventArgs e)
+        {
+            board_to_play.board=board_to_play.BuildBoard();
+            Field11.Content = "";
+            Field12.Content = "";
+            Field13.Content = "";
+            Field21.Content = "";
+            Field22.Content = "";
+            Field23.Content = "";
+            Field31.Content = "";
+            Field32.Content = "";
+            Field33.Content = "";
+            CalculateWebData.Output(neural_web, board_to_play.board);
+            double best_value = board_to_play.ChooseBestValue(neural_web.layers[neural_web.layers.Count - 1]);
+            int field = board_to_play.FindBestNeuronIndex(best_value, neural_web.layers[neural_web.layers.Count - 1]);
+            board_to_play.board[field] = 1;
+            SetButtonContent(field, web_character);
         }
     }
 }

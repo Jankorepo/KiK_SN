@@ -7,102 +7,115 @@ namespace KiK_SN
 {
     class TicTacToe
     {
-        public List<double> game_board = new List<double>() { 0,0,0,0,0,0,0,0,0 };
-        private List<double> CloneBoard(List<double> old_board)
+        public List<int> board=new List<int>();
+        private Random rnd=new Random();
+        public List<int> BuildBoard()
         {
-            List<Double> new_board = new List<double>();
+            List<int> new_board = new List<int>();
+            for (int i = 0; i < 18; i++)
+                new_board.Add(0);
+            for (int i = 18; i < 27; i++)
+                new_board.Add(1);
+            return new_board;
+        }
+        private List<int> CloneBoard(List<int> old_board)
+        {
+            List<int> new_board = new List<int>();
             foreach (var board_value in old_board)
                 new_board.Add(board_value);
             return new_board;
         }
-        public int GameResult()
+        private string CheckGameResult()
         {
-            int X_win = 2;
-            int Y_win = 1;
-            if (CheckResultAtThisMoment(X_win) ==true)
-                return 2;
-            else if (CheckResultAtThisMoment(Y_win) == true)
-                return 1;
-            else if (game_board.Contains(0))
-                return 0;
-            return -1;
-        }
-        private bool CheckResultAtThisMoment(int value)
-        {
-            for (int i = 0; i < 3; i++)
-                if (value == game_board[i] && value == game_board[i+1] && value == game_board[i+2])
-                    return true;
-            for (int i = 0; i < 3; i++)
-                if (value == game_board[i] && value == game_board[i+3] && value == game_board[i+6])
-                    return true;
-            if (value == game_board[0] && value == game_board[4] && value == game_board[8] || 
-                value == game_board[2] && value == game_board[4] && value == game_board[6])
-                return true;
-            return false;
-        }
-        public void RandomMove(int which_player)
-        {
-            List<double> unoccupied_fields = game_board.Where(field => field==0).ToList();
-            Random rnd = new Random();
-            double choosen_field = rnd.Next(unoccupied_fields.Count);
-            for (int i = 0; i < game_board.Count; i++)
+            for (int i = 0; i < 9; i = i + 3)
             {
-                if (choosen_field == i && game_board[i] == 0)
+                int j = i + 9;
+                if ((board[i] == 1 && board[i + 1] == 1 && board[i + 2] == 1) || (board[i] == 1 && board[i + 3] == 1 && board[i + 6] == 1)
+                    || (board[0] == 1 && board[4] == 1 && board[8] == 1) || (board[2] == 1 && board[4] == 1 && board[6] == 1))
+                    return "Web won";
+                else if ((board[j] == 1 && board[j + 1] == 1 && board[j + 2] == 1) || (board[j] == 1 && board[j + 3] == 1 && board[j + 6] == 1)
+                    || (board[9] == 1 && board[13] == 1 && board[17] == 1) || (board[11] == 1 && board[13] == 1 && board[15] == 1))
+                    return "Random player won";
+                else if (board[18] == 0 && board[19] == 0 && board[20] == 0 && board[21] == 0 &&
+                    board[22] == 0 && board[23] == 0 && board[24] == 0 && board[25] == 0 && board[26] == 0)
+                    return "Draw";
+                    // do poprawienia, napisać funkcję która to ogarnie
+            }
+            return "Game is not over";
+        }
+        public void RandomMove()
+        {
+            List<int> unoccupied_fields=new List<int>();
+            for (int i = 18; i < board.Count; i++)
+                if(board[i]==1)
+                    unoccupied_fields.Add(i);
+            int random_field = unoccupied_fields[rnd.Next(unoccupied_fields.Count - 1)];
+            board[random_field - 9] = 1;
+            board[random_field] = 0;
+        }
+        public Tuple<List<List<Double>>,List<List<int>>, string> PlayASingleGame(Web neural_web, bool web_starts_game)
+        {
+            string result = "Game is not over";
+            board = BuildBoard();
+            bool web_move = web_starts_game;
+
+            List<List<double>> saved_web_outputs = new List<List<double>>();
+            List<List<int>> saved_board_moves = new List<List<int>>();
+
+            while (result == "Game is not over")
+            {
+                if (web_move)
                 {
-                    game_board[i] = which_player;
-                    break;
-                }  
-                else if (game_board[i] > 0)
-                    choosen_field++;
+                    web_move = false;
+                    saved_board_moves.Add(CloneBoard(board));
+                    CalculateWebData.Output(neural_web, board);
+                    double best_value=ChooseBestValue(neural_web.layers[neural_web.layers.Count - 1]);
+                    int field = FindBestNeuronIndex(best_value, neural_web.layers[neural_web.layers.Count - 1]);
+                    saved_web_outputs.Add(GetWebOutputValues(neural_web.layers[neural_web.layers.Count - 1]));
+                    board[field] = 1;
+                    board[18 + field] = 0;
+                }
+                else if(!web_move)
+                {
+                    web_move = true;
+                    RandomMove();
+                }
+                result = CheckGameResult();
+            }
+            if (result == "Web won")
+                FixBoardBestValue(saved_board_moves, saved_web_outputs, 1);
+            else if (result == "Random player won")
+                FixBoardBestValue(saved_board_moves, saved_web_outputs, 0);
+            else if (result == "Draw")
+                FixBoardBestValue(saved_board_moves, saved_web_outputs, 0.95);
+            return new Tuple<List<List<double>>, List<List<int>>, string>(saved_web_outputs, saved_board_moves, result);
+
+        }
+        
+        private void FixBoardBestValue(List<List<int>> saved_board_fields, List<List<double>> web_moves, double value)
+        {
+            for (int i = 0; i < web_moves.Count; i++)
+                for (int j = 0; j < 9; j++)
+                    if (saved_board_fields[i][j+18] == 0)
+                        web_moves[i][j] = 0;
+            for (int i = 0; i < web_moves.Count; i++)
+            {
+                int index_of_best_move= web_moves[i].IndexOf(web_moves[i].Max());
+                web_moves[i][index_of_best_move] = value;
             }
         }
-        public void Move(int which_player, int field)
+
+        public double ChooseBestValue(List<Neuron> list_of_neurons)
         {
-            game_board[field] = which_player;
+            double best_value = 0;
+            List<Neuron> tmp_list = new List<Neuron>();
+            for (int i = 0; i < list_of_neurons.Count; i++)
+                if (board[i+18] == 1)
+                    tmp_list.Add(list_of_neurons[i]);
+            best_value = tmp_list.Max(val => val.output);
+            return best_value;
         }
-        public List<List<List<double>>> PlayASingleGame(Web neural_web)
-        {
-            int result = 0;
-            int current_player = 2;
-            List<List<double>> saved_web_moves = new List<List<double>>();
-            List<List<double>> saved_board_moves = new List<List<double>>();
-            List<List<double>> winner = new List<List<double>>();
-            while (result == 0)
-            {
-                if (current_player == 2)
-                {
-                    saved_board_moves.Add(CloneBoard(game_board));
-                    current_player = 1;
-                    CalculateWebData.Output(neural_web, game_board);
-                    double best_value=neural_web.layers[neural_web.layers.Count - 1].Max(neuron => neuron.output);
-                    int field = FindListIndex(best_value, neural_web.layers[neural_web.layers.Count - 1]);
-                    saved_web_moves.Add(GetWebOutputValues(neural_web.layers[neural_web.layers.Count - 1]));
-                    if (game_board[field] != 0)
-                        result = 5;
-                    else
-                        Move(2, field);
-                }
-                else if (current_player == 1)
-                {
-                    RandomMove(current_player);
-                    current_player = 2;
-                }
-                if(result!=5)
-                    result = GameResult();
-            }
-            if (result == 5)
-                winner.Add(new List<double>() { 5 });
-            else if (result == 2)
-                winner.Add(new List<double>() { 2 });
-            else if (result == 1)
-                winner.Add(new List<double>() { 1 });
-            else if (result == -1)
-                winner.Add(new List<double>() { 0 });
-            
-            game_board = new List<double>() { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-            return new List<List<List<double>>>() { saved_web_moves, saved_board_moves, winner };
-        }
-        private int FindListIndex(double best_value, List<Neuron> list_of_outputs)
+        public int FindBestNeuronIndex(double best_value, List<Neuron> list_of_outputs)
         {
             for (int i = 0; i < list_of_outputs.Count; i++)
                 if (best_value == list_of_outputs[i].output)

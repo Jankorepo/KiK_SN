@@ -7,7 +7,16 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Button x:Name="Button01" Content="Włącz" HorizontalAlignment="Center" Margin="0,123,0,0" VerticalAlignment="Top" Height="56" Width="110" Click="Button01_Click"/>
-
+        <Button x:Name="Button01" Content="Włącz" HorizontalAlignment="Center" Margin="0,51,0,0" VerticalAlignment="Top" Height="56" Width="110" Click="Button01_Click"/>
+        <Button x:Name="Field11" Content="" FontSize="20" HorizontalAlignment="Left" Margin="335,175,0,0" VerticalAlignment="Top" Height="40" Width="40" Click="Field11_Click"/>
+        <Button x:Name="Field12" Content="" FontSize="20" HorizontalAlignment="Left" Margin="375,175,0,0" VerticalAlignment="Top" Height="40" Width="40" Click="Field12_Click"/>
+        <Button x:Name="Field13" Content="" FontSize="20" HorizontalAlignment="Left" Margin="415,175,0,0" VerticalAlignment="Top" Height="40" Width="40" Click="Field13_Click"/>
+        <Button x:Name="Field21" Content="" FontSize="20" HorizontalAlignment="Left" Margin="335,215,0,0" VerticalAlignment="Top" Height="40" Width="40" Click="Field21_Click"/>
+        <Button x:Name="Field22" Content="" FontSize="20" HorizontalAlignment="Left" Margin="375,215,0,0" VerticalAlignment="Top" Height="40" Width="40" Click="Field22_Click"/>
+        <Button x:Name="Field23" Content="" FontSize="20" HorizontalAlignment="Left" Margin="415,215,0,0" VerticalAlignment="Top" Height="40" Width="40" Click="Field23_Click"/>
+        <Button x:Name="Field31" Content="" FontSize="20" HorizontalAlignment="Left" Margin="335,255,0,0" VerticalAlignment="Top" Height="40" Width="40" Click="Field31_Click"/>
+        <Button x:Name="Field32" Content="" FontSize="20" HorizontalAlignment="Left" Margin="375,255,0,0" VerticalAlignment="Top" Height="40" Width="40" Click="Field32_Click"/>
+        <Button x:Name="Field33" Content="" FontSize="20" HorizontalAlignment="Left" Margin="415,255,0,0" VerticalAlignment="Top" Height="40" Width="40" Click="Field33_Click"/>
+        <Button x:Name="Clear_button" Content="Wyczyść planszę" Margin="498,112,163,259" Click="Clear_button_Click"/>
     </Grid>
 </Window>

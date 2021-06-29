@@ -6,7 +6,7 @@ namespace KiK_SN
 {
     static class CalculateWebData
     {
-        static public void Output(Web my_web, List<double> inputs)
+        static public void Output(Web my_web, List<int> inputs)
         {
             for (int i = 0; i < my_web.layers[0].Count; i++)
                 my_web.layers[0][i].output = inputs[i];
@@ -18,12 +18,12 @@ namespace KiK_SN
             for (int i = 1; i < my_web.layers.Count; i++)
                 for (int j = 0; j < my_web.layers[i].Count; j++)
                 {
-                    double neuron_result= CalculatesingleNeuronResult(my_web.layers[i][j], my_web.layers[i-1]);
+                    double neuron_result= CalculateSingleNeuronResult(my_web.layers[i][j], my_web.layers[i-1]);
                     my_web.layers[i][j].output = 1 / (1 + (Math.Exp((-1) * (neuron_result))));
                 }
         }
 
-        private static double CalculatesingleNeuronResult(Neuron neuron, List<Neuron> previous_layer)
+        private static double CalculateSingleNeuronResult(Neuron neuron, List<Neuron> previous_layer)
         {
             double result = neuron.bias * neuron.matrix[0];
             for (int i = 0; i < previous_layer.Count; i++)
