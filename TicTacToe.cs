@@ -32,15 +32,14 @@ namespace KiK_SN
                 int j = i + 9;
                 if ((board[i] == 1 && board[i + 1] == 1 && board[i + 2] == 1) || (board[i] == 1 && board[i + 3] == 1 && board[i + 6] == 1)
                     || (board[0] == 1 && board[4] == 1 && board[8] == 1) || (board[2] == 1 && board[4] == 1 && board[6] == 1))
-                    return "Web won";
+                    return "X won";
                 else if ((board[j] == 1 && board[j + 1] == 1 && board[j + 2] == 1) || (board[j] == 1 && board[j + 3] == 1 && board[j + 6] == 1)
                     || (board[9] == 1 && board[13] == 1 && board[17] == 1) || (board[11] == 1 && board[13] == 1 && board[15] == 1))
-                    return "Random player won";
-                else if (board[18] == 0 && board[19] == 0 && board[20] == 0 && board[21] == 0 &&
-                    board[22] == 0 && board[23] == 0 && board[24] == 0 && board[25] == 0 && board[26] == 0)
-                    return "Draw";
-                    // do poprawienia, napisać funkcję która to ogarnie
+                    return "0 won";
             }
+            if (board[18] == 0 && board[19] == 0 && board[20] == 0 && board[21] == 0 &&
+                    board[22] == 0 && board[23] == 0 && board[24] == 0 && board[25] == 0 && board[26] == 0)
+                return "Draw";
             return "Game is not over";
         }
         public void RandomMove()
@@ -53,15 +52,12 @@ namespace KiK_SN
             board[random_field - 9] = 1;
             board[random_field] = 0;
         }
-        public Tuple<List<List<Double>>,List<List<int>>, string> PlayASingleGame(Web neural_web, bool web_starts_game)
+        public Tuple<List<List<Double>>,List<List<int>>, string> PlayASingleGame(Web neural_web, bool web_move)
         {
             string result = "Game is not over";
             board = BuildBoard();
-            bool web_move = web_starts_game;
-
             List<List<double>> saved_web_outputs = new List<List<double>>();
             List<List<int>> saved_board_moves = new List<List<int>>();
-
             while (result == "Game is not over")
             {
                 if (web_move)
@@ -87,11 +83,61 @@ namespace KiK_SN
             else if (result == "Random player won")
                 FixBoardBestValue(saved_board_moves, saved_web_outputs, 0);
             else if (result == "Draw")
-                FixBoardBestValue(saved_board_moves, saved_web_outputs, 0.95);
+                FixBoardBestValue(saved_board_moves, saved_web_outputs, 0.5);
             return new Tuple<List<List<double>>, List<List<int>>, string>(saved_web_outputs, saved_board_moves, result);
-
         }
-        
+        public Tuple<List<List<Double>>, List<List<Double>>, List<List<int>>, string> TrainAIvsAI(Web neural_web, Web neural_web_enemy)
+        {
+            string result = "Game is not over";
+            board = BuildBoard();
+            bool web1_move = true;
+            List<List<double>> saved_web_outputs = new List<List<double>>();
+            List<List<double>> saved_web_enemy_outputs = new List<List<double>>();
+            List<List<int>> saved_board_moves = new List<List<int>>();
+            while (result == "Game is not over")
+            {
+                if (web1_move)
+                {
+                    web1_move = false;
+                    saved_board_moves.Add(CloneBoard(board));
+                    CalculateWebData.Output(neural_web, board);
+                    double best_value = ChooseBestValue(neural_web.layers[neural_web.layers.Count - 1]);
+                    int field = FindBestNeuronIndex(best_value, neural_web.layers[neural_web.layers.Count - 1]);
+                    saved_web_outputs.Add(GetWebOutputValues(neural_web.layers[neural_web.layers.Count - 1]));
+                    board[field] = 1;
+                    board[18 + field] = 0;
+                }
+                else if (!web1_move)
+                {
+                    web1_move = true;
+                    CalculateWebData.Output(neural_web_enemy, board);
+                    double best_value = ChooseBestValue(neural_web_enemy.layers[neural_web_enemy.layers.Count - 1]);
+                    int field = FindBestNeuronIndex(best_value, neural_web_enemy.layers[neural_web_enemy.layers.Count - 1]);
+                    saved_web_enemy_outputs.Add(GetWebOutputValues(neural_web_enemy.layers[neural_web_enemy.layers.Count - 1]));
+                    board[9+field] = 1;
+                    board[18 + field] = 0;
+                }
+                result = CheckGameResult();
+            }
+            if (result == "X won")
+            {
+                FixBoardBestValue(saved_board_moves, saved_web_outputs, 1);
+                FixBoardBestValue(saved_board_moves, saved_web_enemy_outputs, 0);
+            }
+                
+            else if (result == "0 won")
+            {
+                FixBoardBestValue(saved_board_moves, saved_web_outputs, 0);
+                FixBoardBestValue(saved_board_moves, saved_web_enemy_outputs, 1);
+            }
+            else if (result == "Draw")
+            {
+                FixBoardBestValue(saved_board_moves, saved_web_outputs, 0.95);
+                FixBoardBestValue(saved_board_moves, saved_web_enemy_outputs, 0.95);
+            }
+            return new Tuple<List<List<double>>, List<List<double>>, List<List<int>>, string>(saved_web_outputs,
+                saved_web_enemy_outputs, saved_board_moves, result);
+        }
         private void FixBoardBestValue(List<List<int>> saved_board_fields, List<List<double>> web_moves, double value)
         {
             for (int i = 0; i < web_moves.Count; i++)

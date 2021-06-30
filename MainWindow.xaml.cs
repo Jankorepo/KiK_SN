@@ -30,17 +30,18 @@ namespace KiK_SN
         public MainWindow()
         {
             InitializeComponent();
-            neural_web.web_structure = new List<int>() { 27,9,9 };
+            neural_web.web_structure = new List<int>() { 27,18,9 };
             neural_web.Fill(neural_web);
+            neural_web_enemy.web_structure = new List<int>() { 27, 18, 9 };
+            neural_web_enemy.Fill(neural_web_enemy);
         }
 
         private void Button01_Click(object sender, RoutedEventArgs e)
         {
             int epochs = 100000;
-            List<Double> tmp = new List<double>() { 0, 0, 0 };
             for (int i = 0; i < epochs; i++)
             {
-                Tuple<List<List<Double>>, List<List<int>>, string> saved_moves=board_to_play.PlayASingleGame(neural_web, false);
+                Tuple<List<List<Double>>, List<List<int>>, string> saved_moves=board_to_play.PlayASingleGame(neural_web, true);
                 string winner = saved_moves.Item3;
                 for (int j = 0; j < saved_moves.Item1.Count; j++)
                 {
@@ -48,63 +49,50 @@ namespace KiK_SN
                     CalculateWebData.BackwardPropagation(neural_web, saved_moves.Item1[j], 0.01);
                     neural_web.Clean();
                 }
-                if(i>90000)
+            }
+            for (int i = 0; i < epochs; i++)
+            {
+                Tuple<List<List<Double>>, List<List<int>>, string> saved_moves = board_to_play.PlayASingleGame(neural_web_enemy, false);
+                for (int j = 0; j < saved_moves.Item1.Count; j++)
                 {
-                    if (winner == "Web won")
-                        tmp[0]++;
-                    else if (winner == "Random player won")
-                        tmp[1]++;
-                    else if (winner == "Draw")
-                        tmp[2]++;
+                    CalculateWebData.Output(neural_web_enemy, saved_moves.Item2[j]);
+                    CalculateWebData.BackwardPropagation(neural_web_enemy, saved_moves.Item1[j], 0.01);
+                    neural_web_enemy.Clean();
                 }
             }
-            MessageBox.Show("Sieć wygrała " + Math.Round((tmp[0] / 10000), 7) * 100 + "% gier \n" +
-                "Losowość wygrała " + Math.Round((tmp[1] / 10000), 7) * 100 + "% gier \n" +
-                "Remis wystąpił w " + Math.Round((tmp[2] / 10000), 7) * 100 + "% gier \n");
-
-
-
-            CalculateWebData.Output(neural_web, board_to_play.board);
-            double best_value = board_to_play.ChooseBestValue(neural_web.layers[neural_web.layers.Count - 1]);
-            int field = board_to_play.FindBestNeuronIndex(best_value, neural_web.layers[neural_web.layers.Count - 1]);
-            board_to_play.board[field] = 1 ;
-            SetButtonContent(field, web_character);
-        }
-        /*private void PlayVsHuman(int entered_character)
-        {
-            SetButtonContent(entered_character, human_character);
-            board_to_play.board[entered_character] = human_character;
-            if (board_to_play.GameResult(2) == 1)
+            int x = 0;
+            int o = 0;
+            int draw = 0;
+            for (int i = 0; i < epochs; i++)
             {
-                MessageBox.Show("Gracz wygrywa!");
-                return;
-            }
-            else if (board_to_play.GameResult(2) == -1)
-            {
-                MessageBox.Show("Remis!");
-                return;
-            }
+                Tuple<List<List<Double>>, List<List<Double>>, List<List<int>>, string> saved_moves = board_to_play.TrainAIvsAI(neural_web, neural_web_enemy);
                 
-            CalculateWebData.Output(neural_web, board_to_play.board);
-            double best_value = board_to_play.ChooseBestValue(neural_web.layers[neural_web.layers.Count - 1]);
-            int field = board_to_play.FindListIndex(best_value, neural_web.layers[neural_web.layers.Count - 1]);
-            board_to_play.Move(2, field);
-            SetButtonContent(field, web_character);
-            board_to_play.GameResult(2);
-            if (board_to_play.GameResult(2) == 2)
-            {
-                MessageBox.Show("Sieć wygrywa!");
-                return;
+                for (int j = 0; j < saved_moves.Item2.Count; j++)
+                {
+                    CalculateWebData.Output(neural_web_enemy, saved_moves.Item3[j]);
+                    CalculateWebData.BackwardPropagation(neural_web_enemy, saved_moves.Item2[j], 0.01);
+                    neural_web_enemy.Clean();
+                }
+                for (int j = 0; j < saved_moves.Item1.Count; j++)
+                {
+                    CalculateWebData.Output(neural_web, saved_moves.Item3[j]);
+                    CalculateWebData.BackwardPropagation(neural_web, saved_moves.Item1[j], 0.01);
+                    neural_web.Clean();
+                }
+                if(i>90000)
+                {
+                    if (saved_moves.Item4 == "X won")
+                        x++;
+                    else if (saved_moves.Item4 == "0 won")
+                        o++;
+                    else
+                        draw++;
+                }
+                
             }
-            else if (board_to_play.GameResult(2) == -1)
-            {
-                MessageBox.Show("Remis!");
-                return;
-            }
-        }*/
-
+            MessageBox.Show("Sieć pierwsza wygrała " + x + " gier, sieć druga wygrała " + o + " gier, a remisów było " + draw);
+        }
         
-
         private void SetButtonContent(int field, int character)
         {
             string output_character = "";
